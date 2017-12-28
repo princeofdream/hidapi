@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 	// data here, but execution should not block.
 	res = hid_read(handle, buf, 17);
 
-#if 1
+#if 0
 	//Sleep(3000);
 	// Send a Feature Report to the device
 	buf[0] = 0x2;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
 	//Sleep(3000);
 	memset(buf,0,sizeof(buf));
 
-#if 1
+#if 0
 	// Read a Feature Report from the device
 	buf[0] = 0x2;
 	res = hid_get_feature_report(handle, buf, sizeof(buf));
@@ -162,15 +162,67 @@ int main(int argc, char* argv[])
 	//Sleep(3000);
 	// Toggle LED (cmd 0x80). The first byte is the report number (0x1).
 #if 1
-	buf[0] = 0x1;
-	buf[1] = 0x80;
-	i0=0+2;
-	while(i0<16)
+	unsigned char cmd_buf[4];
+	memset(buf,0x0,sizeof(buf));
+	memset(cmd_buf,0x0,sizeof(cmd_buf));
+	i0=0;
+	while(i0<32)
 	{
 		buf[i0] = i0;
 		i0++;
 	}
-	res = hid_write(handle, buf, 17);
+	buf[0] = 0x01;
+
+#if 0
+	//protocol nec
+	buf[1] = 0x00;
+	buf[2] = 0x01;
+	//vendor code
+	buf[3] = 0x7A;
+	buf[4] = 0xC5;
+	//keycode
+	buf[5] = 0x3C;
+	buf[6] = 0xD6;
+	//repeat
+	buf[7] = 0x00;
+	buf[8] = 0x00;
+#else
+	buf[1] = 0x00;
+	buf[2] = 0x01;
+
+	buf[3] = 0x00;
+	buf[4] = 0xBD;
+	buf[5] = 0xDB;
+	buf[6] = 0x4F;
+
+	buf[7] = 0x00;
+	buf[8] = 0x00;
+#endif
+
+
+	i0=0;
+	// while(i0<32/2)
+	{
+		res = hid_write(handle, buf, 16);
+		if (res < 0) {
+			printf("write Fail!");
+		}
+		// buf+=2;
+		usleep(4*1000);
+		i0++;
+	}
+#endif
+#if 0
+	memset(buf,0x0,sizeof(buf));
+	buf[0] = 0x1;
+	buf[1] = 0x80;
+	i0=0+2;
+	while(i0<32)
+	{
+		buf[i0] = i0;
+		i0++;
+	}
+	res = hid_write(handle, buf, 32);
 	if (res < 0) {
 		printf("Unable to write()\n");
 		printf("Error: %ls\n", hid_error(handle));
@@ -183,14 +235,14 @@ int main(int argc, char* argv[])
 	// Request state (cmd 0x81). The first byte is the report number (0x1).
 	buf[0] = 0x1;
 	buf[1] = 0x81;
-	//Sleep(3000);
+	/* usleep(500000); */
 	res = hid_write(handle, buf, 17);
 	if (res < 0)
 		printf("Unable to write() (2)\n");
 	else
 		printf("write %d bytes\n",res );
 #endif
-#if 1
+#if 0
 	// Read requested state. hid_read() has been set to be
 	// non-blocking by the call to hid_set_nonblocking() above.
 	// This loop demonstrates the non-blocking nature of hid_read().
@@ -209,11 +261,11 @@ int main(int argc, char* argv[])
 		usleep(500*1000);
 		#endif
 	}
-#endif
 	printf("Data read:\n   ");
 	// Print out the returned buffer.
 	for (i = 0; i < res; i++)
 		printf("%02hhx ", buf[i]);
+#endif
 	printf("\n");
 
 	hid_close(handle);
